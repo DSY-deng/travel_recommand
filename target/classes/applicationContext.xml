@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+
+       http://www.springframework.org/schema/context
+       https://www.springframework.org/schema/context/spring-context.xsd
+
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--扫描service层-->
+   <context:component-scan base-package="org.edu.*"></context:component-scan>
+
+    <!--1.加载数据库配置文件-->
+    <context:property-placeholder location="classpath:db.properties" system-properties-mode="NEVER"></context:property-placeholder>
+
+    <!--2.配置数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${driver}"></property>
+        <property name="url" value="${url}"></property>
+        <property name="username" value="${username}"></property>
+        <property name="password" value="${password}"></property>
+    </bean>
+
+    <!--3.配置sqlSessionFactory-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"></property>
+       <!-- <property name="typeAliasesPackage" value="org.qf.pojo"></property>-->
+        <!--pagehelper-->
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <value>
+                            helperDialect=mysql
+                            reasonable=true
+                            supportMethodsArguments=true
+                            params=count=countSql
+                            autoRuntimeDialect=true
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+    <!--4.加载mapper接口-->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <property name="basePackage" value="org.edu.mapper"></property>
+    </bean>
+    <!--以上为spring  mybatis整合-->
+
+    <!--事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+    </bean>
+
+    <!--5.事物(注解版)-->
+    <!--扫描注解版事务-->
+    <tx:annotation-driven transaction-manager="transactionManager"></tx:annotation-driven>
+
+
+</beans>
+
+    <!-- 配置shiro的过滤器 -->
+    <!-- 配置自定义realm的实例
+    <bean id="userService" class="org.java.service.impl.UserServiceImpl"></bean>-
+    -->
+   <!-- <bean id="myRealm" class="org.qf.realm.MyRealm"/>
+    &lt;!&ndash;安全管理器&ndash;&gt;
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="myRealm"/>
+    </bean>
+    &lt;!&ndash; Shiro过滤器 &ndash;&gt;
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        &lt;!&ndash; Shiro的核心安全接口,这个属性是必须的 &ndash;&gt;
+        <property name="securityManager" ref="securityManager"/>
+        &lt;!&ndash; 身份认证失败，则跳转到登录页面的配置 &ndash;&gt;
+        <property name="loginUrl" value="login"/>
+        &lt;!&ndash; Shiro连接约束配置,即过滤链的定义 &ndash;&gt;
+        <property name="filterChainDefinitions">
+            <value>
+                /login=anon
+                /userList=authc
+            </value>
+        </property>
+    </bean>-->
+
